@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: com.evoluum.localidades.controller.LocationsCtrlTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 15.591 s <<< FAILURE! - in com.evoluum.localidades.controller.LocationsCtrlTest
+retornoListaEstadosCsv  Time elapsed: 0.159 s  <<< ERROR!
+java.io.FileNotFoundException: class path resource [Locations.csv] cannot be opened because it does not exist
+	at com.evoluum.localidades.controller.LocationsCtrlTest.retornoListaEstadosCsv(LocationsCtrlTest.java:51)
+
