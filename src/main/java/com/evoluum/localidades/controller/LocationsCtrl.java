@@ -2,7 +2,8 @@ package com.evoluum.localidades.controller;
 
 import com.evoluum.localidades.dto.LocationResult;
 import com.evoluum.localidades.helper.plugins.HttpResponseCsv;
-import com.evoluum.localidades.service.LocationsService;
+import com.evoluum.localidades.service.LocationService;
+import com.evoluum.localidades.service.LocationsServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +17,9 @@ import java.util.Optional;
 @RequestMapping("/public/api/v1/locations")
 public class LocationsCtrl extends HttpResponseCsv {
 
-    private LocationsService service;
+    private final LocationService service;
 
-    public LocationsCtrl(LocationsService service) {
+    public LocationsCtrl(LocationsServiceImpl service) {
         this.service = service;
     }
 
@@ -35,9 +36,9 @@ public class LocationsCtrl extends HttpResponseCsv {
     }
 
     @GetMapping("/csv")
-    public ResponseEntity<?> teste(HttpServletResponse response) {
+    public ResponseEntity<?> getLocationsCsv (HttpServletResponse response) {
         try {
-            requestLocationCsv(response, service.getLocationsToString());
+            requestLocationCsv(response, this.service.getLocationsToString());
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().build();

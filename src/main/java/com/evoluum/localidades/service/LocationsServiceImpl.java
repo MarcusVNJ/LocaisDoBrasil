@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
-public class LocationsService {
+public class LocationsServiceImpl implements LocationService {
 
     private static final String URLLOCATIONS = "https://servicodados.ibge.gov.br/api/v1/localidades/estados";
     private static final String URLCITIES = "https://servicodados.ibge.gov.br/api/v1/localidades/estados/%s/municipios";
@@ -30,26 +30,33 @@ public class LocationsService {
 
     private final RestTemplate restTemplate;
 
-    public LocationsService(RestTemplateBuilder restTemplateBuilder) {
+    public LocationsServiceImpl(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
     }
 
+    @Override
     public Optional<List<LocationResult>> getLocations() {
         logger.info("Buscando estados...");
-        return Optional.of(getStades().stream().flatMap(estado -> {
+        return Optional.of(getStates().stream().flatMap(estado -> {
             return this.getCities(estado.getId()).stream().parallel().map(city -> LocationResult.createdLocationDto(city, estado));
         }).collect(Collectors.toList()));
     }
 
+    @Override
     @Cacheable("cities")
     public Optional<List<Integer>> getIdCity(String nameCity) {
-        return Optional.of(getStades().stream().flatMap(estado -> {
+        return Optional.of(getStates().stream().flatMap(estado -> {
             logger.info(String.format("Buscando cidades do estado de %s", estado.getSigla()));
             return this.getCities(estado.getId()).stream().filter(city -> this.compareNameCity(city.getNome(), nameCity));
         }).map(City::getId).collect(Collectors.toList()));
     }
 
-    private List<State> getStades() {
+    @Override
+    public List<String> getLocationsToString() {
+        return Objects.requireNonNull(this.getLocations().get()).stream().parallel().map(LocationResult::toStringCsv).collect(Collectors.toList());
+    }
+
+    private List<State> getStates() {
         ResponseEntity<State[]> locationsResult = this.restTemplate.getForEntity(URLLOCATIONS, State[].class);
 
         return Arrays.asList(Objects.requireNonNull(locationsResult.getBody()));
@@ -66,15 +73,12 @@ public class LocationsService {
         return String.format(URLCITIES, nameState);
     }
 
-    private Boolean compareNameCity(String nomaCity1, String nameCity2) {
+    private Boolean compareNameCity(String nameCity1, String nameCity2) {
         Collator collator = Collator.getInstance(new Locale("pt", "BR"));
         collator.setStrength(Collator.PRIMARY);
 
-        return nameCity2 != null ? collator.compare(nomaCity1, nameCity2) == 0 : false;
+        return nameCity2 != null ? collator.compare(nameCity1, nameCity2) == 0 : false;
     }
 
-    public List<String> getLocationsToString() {
-        return this.getLocations().get().stream().parallel().map(LocationResult::toStringCsv).collect(Collectors.toList());
-    }
 
 }

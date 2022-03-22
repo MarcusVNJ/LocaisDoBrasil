@@ -1,0 +1,201 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > LocationsService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.evoluum.localidades.service</a>
+</div>
+
+<h1>Coverage Summary for Class: LocationsService (com.evoluum.localidades.service)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LocationsService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (11/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (22/22)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">LocationsService$$EnhancerBySpringCGLIB$$1c267a72</td>
+  </tr>
+  <tr>
+    <td class="name">LocationsService$$EnhancerBySpringCGLIB$$1c267a72$$FastClassBySpringCGLIB$$61aecf11</td>
+  </tr>
+  <tr>
+    <td class="name">LocationsService$$FastClassBySpringCGLIB$$17580603</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (11/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (22/22)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.evoluum.localidades.service;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import com.evoluum.localidades.dto.LocationResult;
+<i class="no-highlight">4</i>&nbsp;import com.evoluum.localidades.model.City;
+<i class="no-highlight">5</i>&nbsp;import com.evoluum.localidades.model.State;
+<i class="no-highlight">6</i>&nbsp;import com.fasterxml.jackson.databind.node.ArrayNode;
+<i class="no-highlight">7</i>&nbsp;import org.springframework.boot.web.client.RestTemplateBuilder;
+<i class="no-highlight">8</i>&nbsp;import org.springframework.cache.annotation.Cacheable;
+<i class="no-highlight">9</i>&nbsp;import org.springframework.http.ResponseEntity;
+<i class="no-highlight">10</i>&nbsp;import org.springframework.stereotype.Service;
+<i class="no-highlight">11</i>&nbsp;import org.springframework.web.client.RestTemplate;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import java.text.Collator;
+<i class="no-highlight">14</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">15</i>&nbsp;import java.util.List;
+<i class="no-highlight">16</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">17</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">18</i>&nbsp;import java.util.Locale;
+<i class="no-highlight">19</i>&nbsp;import java.util.logging.Logger;
+<i class="no-highlight">20</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">21</i>&nbsp;import java.util.stream.StreamSupport;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;@Service
+<i class="no-highlight">24</i>&nbsp;public class LocationsService {
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;    private static final String URLLOCATIONS = &quot;https://servicodados.ibge.gov.br/api/v1/localidades/estados&quot;;
+<i class="no-highlight">27</i>&nbsp;    private static final String URLCITIES = &quot;https://servicodados.ibge.gov.br/api/v1/localidades/estados/%s/municipios&quot;;
+<i class="no-highlight">28</i>&nbsp;
+<b class="fc"><i class="no-highlight">29</i>&nbsp;    private Logger logger = Logger.getLogger(this.getClass().getName());</b>
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;    private final RestTemplate restTemplate;
+<i class="no-highlight">32</i>&nbsp;
+<b class="fc"><i class="no-highlight">33</i>&nbsp;    public LocationsService(RestTemplateBuilder restTemplateBuilder) {</b>
+<b class="fc"><i class="no-highlight">34</i>&nbsp;        this.restTemplate = restTemplateBuilder.build();</b>
+<i class="no-highlight">35</i>&nbsp;    }
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;    public Optional&lt;List&lt;LocationResult&gt;&gt; getLocations() {
+<b class="fc"><i class="no-highlight">38</i>&nbsp;        logger.info(&quot;Buscando estados...&quot;);</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;        return Optional.of(getStades().stream().flatMap(estado -&gt; {</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;            return this.getCities(estado.getId()).stream().parallel().map(city -&gt; LocationResult.createdLocationDto(city, estado));</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;        }).collect(Collectors.toList()));</b>
+<i class="no-highlight">42</i>&nbsp;    }
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;    @Cacheable(&quot;cities&quot;)
+<i class="no-highlight">45</i>&nbsp;    public Optional&lt;List&lt;Integer&gt;&gt; getIdCity(String nameCity) {
+<b class="fc"><i class="no-highlight">46</i>&nbsp;        return Optional.of(getStades().stream().flatMap(estado -&gt; {</b>
+<b class="fc"><i class="no-highlight">47</i>&nbsp;            logger.info(String.format(&quot;Buscando cidades do estado de %s&quot;, estado.getSigla()));</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;            return this.getCities(estado.getId()).stream().filter(city -&gt; this.compareNameCity(city.getNome(), nameCity));</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;        }).map(City::getId).collect(Collectors.toList()));</b>
+<i class="no-highlight">50</i>&nbsp;    }
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;    private List&lt;State&gt; getStades() {
+<b class="fc"><i class="no-highlight">53</i>&nbsp;        ResponseEntity&lt;State[]&gt; locationsResult = this.restTemplate.getForEntity(URLLOCATIONS, State[].class);</b>
+<i class="no-highlight">54</i>&nbsp;
+<b class="fc"><i class="no-highlight">55</i>&nbsp;        return Arrays.asList(Objects.requireNonNull(locationsResult.getBody()));</b>
+<i class="no-highlight">56</i>&nbsp;    }
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;    private List&lt;City&gt; getCities(Integer idState) {
+<b class="fc"><i class="no-highlight">59</i>&nbsp;        ResponseEntity&lt;ArrayNode&gt; cities = Objects.requireNonNull(this.restTemplate.getForEntity(this.urlCity(idState), ArrayNode.class));</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;        return StreamSupport.stream(Objects.requireNonNull(cities.getBody()).spliterator(), true).map(city -&gt; {</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;            return new City(city.get(&quot;id&quot;).asInt(), city.get(&quot;nome&quot;).asText(), city.findPath(&quot;mesorregiao&quot;).get(&quot;nome&quot;).asText());</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;        }).collect(Collectors.toList());</b>
+<i class="no-highlight">63</i>&nbsp;    }
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    private String urlCity(Integer nameState) {
+<b class="fc"><i class="no-highlight">66</i>&nbsp;        return String.format(URLCITIES, nameState);</b>
+<i class="no-highlight">67</i>&nbsp;    }
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;    private Boolean compareNameCity(String nomaCity1, String nameCity2) {
+<b class="fc"><i class="no-highlight">70</i>&nbsp;        Collator collator = Collator.getInstance(new Locale(&quot;pt&quot;, &quot;BR&quot;));</b>
+<b class="fc"><i class="no-highlight">71</i>&nbsp;        collator.setStrength(Collator.PRIMARY);</b>
+<i class="no-highlight">72</i>&nbsp;
+<b class="fc"><i class="no-highlight">73</i>&nbsp;        return nameCity2 != null ? collator.compare(nomaCity1, nameCity2) == 0 : false;</b>
+<i class="no-highlight">74</i>&nbsp;    }
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    public List&lt;String&gt; getLocationsToString() {
+<b class="fc"><i class="no-highlight">77</i>&nbsp;        return this.getLocations().get().stream().parallel().map(LocationResult::toStringCsv).collect(Collectors.toList());</b>
+<i class="no-highlight">78</i>&nbsp;    }
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-03-21 19:02</div>
+</div>
+</body>
+</html>

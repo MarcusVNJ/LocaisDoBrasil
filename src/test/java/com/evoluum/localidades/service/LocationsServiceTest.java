@@ -7,8 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Arrays;
@@ -22,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LocationsServiceTest {
 
     @Autowired
-    private LocationsService service;
+    private LocationService service;
 
     @Test
     public void testeMetodoGetLocations() {

@@ -1,7 +1,5 @@
 package com.evoluum.localidades.model;
 
-import org.springframework.lang.NonNull;
-
 import java.io.Serializable;
 
 public class State implements Serializable {
